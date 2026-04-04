@@ -89,7 +89,7 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US&limit=10`
+  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=DK`
 
   try {
     const response = await fetch(url, {
