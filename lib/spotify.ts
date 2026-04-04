@@ -91,8 +91,9 @@ export async function getArtistTopTracks(token: string, artistId: string) {
       market = profile.country.toUpperCase()
     }
   } catch (error) {
-    // Silently fallback to DK if profile fetch fails
+    console.warn('Failed to get profile, using default market DK', error)
   }
+  console.log(`Fetching artist top tracks for ${artistId} with market ${market}`)
   return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=${market}`, token)
 }
 

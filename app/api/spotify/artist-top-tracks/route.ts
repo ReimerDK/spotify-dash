@@ -16,7 +16,13 @@ export async function GET(req: Request) {
     const data = await getArtistTopTracks(session.accessToken, id)
     return NextResponse.json(data)
   } catch (error: any) {
-    console.error('Artist top tracks error:', error)
+    console.error('Artist top tracks error:', JSON.stringify(error, null, 2))
+    console.error('Error details:', {
+      message: error?.message,
+      error: error?.error,
+      status: error?.status,
+      stack: error?.stack
+    })
     return NextResponse.json({ error: error?.message || 'Failed to fetch top tracks' }, { status: 500 })
   }
 }

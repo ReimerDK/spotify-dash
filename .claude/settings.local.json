@@ -4,7 +4,8 @@
       "Bash(npm run:*)",
       "Bash(git add:*)",
       "Bash(git commit -m 'Build: Complete Spotify Dashboard with OAuth, API routes, and beautiful UI:*)",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "mcp__plugin_vercel_vercel__get_runtime_logs"
     ]
   }
 }
