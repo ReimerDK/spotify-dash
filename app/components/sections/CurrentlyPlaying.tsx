@@ -113,7 +113,7 @@ export function CurrentlyPlaying() {
             </div>
             <h2 className="text-2xl font-bold mb-2 line-clamp-2">{item.name}</h2>
             <p className="text-sm text-zinc-300">
-              {item.artists.map((a: any) => a.name).join(', ')}
+              {item.artists?.map((a: any) => a.name).join(', ')}
             </p>
           </motion.div>
         </div>

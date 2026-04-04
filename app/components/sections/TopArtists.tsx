@@ -75,9 +75,9 @@ export function TopArtists() {
               />
             )}
             <h3 className="font-semibold text-sm line-clamp-1">{artist.name}</h3>
-            {artist.genres[0] && (
+            {artist.genres?.[0] && (
               <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
-                {artist.genres[0]}
+                {artist.genres?.[0]}
               </p>
             )}
           </motion.a>

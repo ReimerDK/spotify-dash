@@ -110,7 +110,7 @@ export function Search() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{track.name}</p>
                         <p className="text-xs text-zinc-400 truncate">
-                          {track.artists.map((a: any) => a.name).join(', ')}
+                          {track.artists?.map((a: any) => a.name).join(', ')}
                         </p>
                       </div>
                     </motion.a>
