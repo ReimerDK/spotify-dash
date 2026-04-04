@@ -13,27 +13,32 @@ async function spotifyFetch<T>(
   const url = `${SPOTIFY_API_BASE}${endpoint}`
   console.log('Spotify fetch:', { endpoint, url })
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    })
 
-  console.log('Response status:', response.status)
+    console.log('Response status:', response.status)
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    console.log('API error response:', error)
-    throw {
-      error: `Spotify API Error: ${response.status}`,
-      message: error.error?.message || response.statusText,
-    } as SpotifyError
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      console.log('API error response:', error)
+      throw {
+        error: `Spotify API Error: ${response.status}`,
+        message: error.error?.message || response.statusText,
+      } as SpotifyError
+    }
+
+    return response.json()
+  } catch (e: any) {
+    console.error('Fetch error:', e?.message || e)
+    throw e
   }
-
-  return response.json()
 }
 
 export async function getTopTracks(token: string, limit = 20) {
