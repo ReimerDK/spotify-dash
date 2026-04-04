@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m 'Build: Complete Spotify Dashboard with OAuth, API routes, and beautiful UI:*)"
+      "Bash(git commit -m 'Build: Complete Spotify Dashboard with OAuth, API routes, and beautiful UI:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }

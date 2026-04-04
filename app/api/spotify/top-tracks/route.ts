@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth/next'
 import { NextResponse } from 'next/server'
-import { authOptions } from '@/app/api/auth/[...nextauth]'
-import { getTopArtists } from '@/lib/spotify'
+import { authOptions } from '@/lib/auth'
+import { getTopTracks } from '@/lib/spotify'
 
 export async function GET() {
   try {
@@ -11,11 +11,11 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await getTopArtists(session.accessToken, 20)
+    const data = await getTopTracks(session.accessToken, 20)
     return NextResponse.json(data)
   } catch (error: any) {
     return NextResponse.json(
-      { error: error?.message || 'Failed to fetch top artists' },
+      { error: error?.message || 'Failed to fetch top tracks' },
       { status: 500 }
     )
   }

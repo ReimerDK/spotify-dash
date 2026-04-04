@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions } from 'next-auth'
+import { type NextAuthOptions } from 'next-auth'
 import SpotifyProvider from 'next-auth/providers/spotify'
 
 export const authOptions: NextAuthOptions = {
@@ -41,6 +41,3 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
 }
-
-const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST }

@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth/next'
 import { NextResponse } from 'next/server'
-import { authOptions } from '@/app/api/auth/[...nextauth]'
+import { authOptions } from '@/lib/auth'
 import { getCurrentlyPlaying } from '@/lib/spotify'
 
 export async function GET() {
