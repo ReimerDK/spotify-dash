@@ -83,6 +83,12 @@ export async function getUserProfile(token: string) {
   return spotifyFetch<any>('/me', token)
 }
 
+export async function getArtistTopTracks(token: string, artistId: string) {
+  const profile = await getUserProfile(token)
+  const market = profile.country || 'US'
+  return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=${market}`, token)
+}
+
 async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {
   const url = `${SPOTIFY_API_BASE}${endpoint}`
   const response = await fetch(url, {

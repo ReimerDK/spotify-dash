@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next'
 import { NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
+import { getArtistTopTracks } from '@/lib/spotify'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -11,12 +12,10 @@ export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.accessToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const res = await fetch(
-    `https://api.spotify.com/v1/artists/${id}/top-tracks?market=from_token`,
-    { headers: { Authorization: `Bearer ${session.accessToken}` } }
-  )
-  const data = await res.json()
-  if (!res.ok) return NextResponse.json({ error: data?.error?.message || 'Failed' }, { status: res.status })
-
-  return NextResponse.json(data)
+  try {
+    const data = await getArtistTopTracks(session.accessToken, id)
+    return NextResponse.json(data)
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || 'Failed to fetch top tracks' }, { status: 500 })
+  }
 }
