@@ -203,7 +203,7 @@ export function TopArtists() {
                     transition={{ delay: idx * 0.03, type: 'spring', damping: 25 }}
                     className="group flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.05] transition-colors cursor-pointer"
                   >
-                    <span className="text-xs text-zinc-500 w-4 text-right flex-shrink-0 tabular-nums">{idx + 1}</span>
+                    <span className="text-xs text-zinc-400 w-5 text-right flex-shrink-0 font-mono">{String(idx + 1).padStart(2, ' ')}</span>
                     {track.album?.images?.[0] && (
                       <img src={track.album.images[0].url} alt={track.name} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                     )}
