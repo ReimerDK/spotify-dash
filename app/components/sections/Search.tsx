@@ -2,12 +2,24 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass, Play } from '@phosphor-icons/react'
 
 interface SearchResult {
   tracks?: { items: any[] }
   artists?: { items: any[] }
   playlists?: { items: any[] }
+}
+
+async function playUri(uri: string, isContext = false) {
+  await fetch('/api/spotify/player', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(
+      isContext
+        ? { action: 'play_uri', context_uri: uri }
+        : { action: 'play_uri', uris: [uri] }
+    ),
+  })
 }
 
 export function Search() {
@@ -67,13 +79,11 @@ export function Search() {
             exit={{ opacity: 0 }}
             className="text-center py-8"
           >
-            <div className="inline-block">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="w-6 h-6 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full"
-              />
-            </div>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              className="w-6 h-6 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full mx-auto"
+            />
           </motion.div>
         )}
 
@@ -90,15 +100,13 @@ export function Search() {
                 <h3 className="text-lg font-semibold mb-3">Tracks</h3>
                 <div className="space-y-2">
                   {results.tracks.items.filter(Boolean).slice(0, 5).map((track: any, idx: number) => (
-                    <motion.a
+                    <motion.div
                       key={track.id}
-                      href={track.external_urls?.spotify}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => playUri(track.uri)}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                      className="group flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
                     >
                       {track.album?.images?.[0] && (
                         <img
@@ -113,7 +121,8 @@ export function Search() {
                           {track.artists?.map((a: any) => a.name).join(', ')}
                         </p>
                       </div>
-                    </motion.a>
+                      <Play size={16} weight="fill" className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -125,15 +134,13 @@ export function Search() {
                 <h3 className="text-lg font-semibold mb-3">Artists</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {results.artists.items.filter(Boolean).slice(0, 6).map((artist: any, idx: number) => (
-                    <motion.a
+                    <motion.div
                       key={artist.id}
-                      href={artist.external_urls?.spotify}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => playUri(artist.uri, true)}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="rounded-lg border border-slate-200/10 bg-white/[0.02] p-3 text-center hover:bg-white/[0.05] transition-colors cursor-pointer"
+                      className="group rounded-lg border border-slate-200/10 bg-white/[0.02] p-3 text-center hover:bg-white/[0.05] transition-colors cursor-pointer"
                     >
                       {artist.images?.[0] && (
                         <img
@@ -143,7 +150,7 @@ export function Search() {
                         />
                       )}
                       <p className="text-sm font-medium line-clamp-1">{artist.name}</p>
-                    </motion.a>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -155,15 +162,13 @@ export function Search() {
                 <h3 className="text-lg font-semibold mb-3">Playlists</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {results.playlists.items.filter(Boolean).slice(0, 4).map((playlist: any, idx: number) => (
-                    <motion.a
+                    <motion.div
                       key={playlist.id}
-                      href={playlist.external_urls?.spotify}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => playUri(playlist.uri, true)}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="rounded-lg border border-slate-200/10 bg-white/[0.02] p-3 hover:bg-white/[0.05] transition-colors cursor-pointer flex items-center gap-3"
+                      className="group rounded-lg border border-slate-200/10 bg-white/[0.02] p-3 hover:bg-white/[0.05] transition-colors cursor-pointer flex items-center gap-3"
                     >
                       {playlist.images?.[0] && (
                         <img
@@ -175,7 +180,8 @@ export function Search() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium line-clamp-1">{playlist.name}</p>
                       </div>
-                    </motion.a>
+                      <Play size={16} weight="fill" className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.div>
                   ))}
                 </div>
               </div>

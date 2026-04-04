@@ -104,3 +104,7 @@ export const playerNext = (token: string) => spotifyCommand('/me/player/next', t
 export const playerPrevious = (token: string) => spotifyCommand('/me/player/previous', token, 'POST')
 export const playerSeek = (token: string, position_ms: number) =>
   spotifyCommand(`/me/player/seek?position_ms=${position_ms}`, token, 'PUT')
+export const playerPlayUris = (token: string, uris: string[]) =>
+  spotifyCommand('/me/player/play', token, 'PUT', { uris })
+export const playerPlayContext = (token: string, context_uri: string) =>
+  spotifyCommand('/me/player/play', token, 'PUT', { context_uri })

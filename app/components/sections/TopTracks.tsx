@@ -7,10 +7,18 @@ import { Play } from '@phosphor-icons/react'
 
 interface Track {
   id: string
+  uri: string
   name: string
   artists: { name: string }[]
   album: { images: { url: string }[] }
-  external_urls: { spotify: string }
+}
+
+async function playTrack(uri: string) {
+  await fetch('/api/spotify/player', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'play_uri', uris: [uri] }),
+  })
 }
 
 export function TopTracks() {
@@ -59,20 +67,16 @@ export function TopTracks() {
       <h2 className="text-2xl font-bold">Top Tracks</h2>
       <div className="rounded-3xl border border-slate-200/10 bg-white/[0.02] backdrop-blur divide-y divide-slate-200/10">
         {tracks.slice(0, 8).map((track, idx) => (
-          <motion.a
+          <motion.div
             key={track.id}
-            href={track.external_urls.spotify}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => playTrack(track.uri)}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.03, type: 'spring', damping: 25 }}
             className="group p-4 flex items-center gap-4 hover:bg-white/[0.05] transition-colors cursor-pointer"
           >
-            {/* Rank */}
             <div className="text-sm font-bold text-emerald-500 w-6">{idx + 1}</div>
 
-            {/* Album Art */}
             {track.album?.images?.[0] && (
               <img
                 src={track.album?.images?.[0]?.url}
@@ -81,7 +85,6 @@ export function TopTracks() {
               />
             )}
 
-            {/* Info */}
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm truncate">{track.name}</h3>
               <p className="text-xs text-zinc-400 truncate">
@@ -89,13 +92,12 @@ export function TopTracks() {
               </p>
             </div>
 
-            {/* Play Icon */}
             <Play
               size={20}
               weight="fill"
               className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"
             />
-          </motion.a>
+          </motion.div>
         ))}
       </div>
     </div>

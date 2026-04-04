@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth/next'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
-import { playerPlay, playerPause, playerNext, playerPrevious, playerSeek } from '@/lib/spotify'
+import { playerPlay, playerPause, playerNext, playerPrevious, playerSeek, playerPlayUris, playerPlayContext } from '@/lib/spotify'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { action, position_ms } = await req.json()
+  const body = await req.json()
+  const { action, position_ms, uris, context_uri } = body
 
   try {
     switch (action) {
@@ -27,6 +28,13 @@ export async function POST(req: NextRequest) {
         break
       case 'seek':
         await playerSeek(session.accessToken, position_ms)
+        break
+      case 'play_uri':
+        if (context_uri) {
+          await playerPlayContext(session.accessToken, context_uri)
+        } else if (uris) {
+          await playerPlayUris(session.accessToken, uris)
+        }
         break
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

@@ -6,9 +6,18 @@ import { LoadingSkeleton } from '@/app/components/LoadingCard'
 
 interface Artist {
   id: string
+  uri: string
   name: string
   images: { url: string }[]
   genres: string[]
+}
+
+async function playContext(uri: string) {
+  await fetch('/api/spotify/player', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'play_uri', context_uri: uri }),
+  })
 }
 
 export function TopArtists() {
@@ -57,11 +66,9 @@ export function TopArtists() {
       <h2 className="text-2xl font-bold">Top Artists</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {artists.slice(0, 6).map((artist, idx) => (
-          <motion.a
+          <motion.div
             key={artist.id}
-            href={`https://open.spotify.com/artist/${artist.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => playContext(artist.uri)}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05, type: 'spring', damping: 20 }}
@@ -80,7 +87,7 @@ export function TopArtists() {
                 {artist.genres?.[0]}
               </p>
             )}
-          </motion.a>
+          </motion.div>
         ))}
       </div>
     </div>

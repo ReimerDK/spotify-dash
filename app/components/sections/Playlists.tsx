@@ -6,10 +6,18 @@ import { LoadingSkeleton } from '@/app/components/LoadingCard'
 
 interface Playlist {
   id: string
+  uri: string
   name: string
   images: { url: string }[]
   tracks: { total: number }
-  external_urls: { spotify: string }
+}
+
+async function playContext(uri: string) {
+  await fetch('/api/spotify/player', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'play_uri', context_uri: uri }),
+  })
 }
 
 export function Playlists() {
@@ -59,11 +67,9 @@ export function Playlists() {
       <div className="overflow-x-auto pb-4 -mb-4 scrollbar-hide">
         <div className="flex gap-4 min-w-min">
           {playlists.map((playlist, idx) => (
-            <motion.a
+            <motion.div
               key={playlist.id}
-              href={playlist.external_urls.spotify}
-              target="_blank"
-              rel="noopener noreferrer"
+              onClick={() => playContext(playlist.uri)}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05, type: 'spring', damping: 20 }}
@@ -84,7 +90,7 @@ export function Playlists() {
                   {playlist.tracks?.total ?? 0} tracks
                 </p>
               </div>
-            </motion.a>
+            </motion.div>
           ))}
         </div>
       </div>
