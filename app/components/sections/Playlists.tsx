@@ -69,9 +69,9 @@ export function Playlists() {
               transition={{ delay: idx * 0.05, type: 'spring', damping: 20 }}
               className="group flex-shrink-0 w-48 rounded-2xl border border-slate-200/10 bg-white/[0.02] backdrop-blur overflow-hidden hover:bg-white/[0.05] transition-all cursor-pointer"
             >
-              {playlist.images[0] && (
+              {playlist.images?.[0] && (
                 <img
-                  src={playlist.images[0].url}
+                  src={playlist.images?.[0]?.url}
                   alt={playlist.name}
                   className="w-full aspect-square object-cover group-hover:scale-105 transition-transform"
                 />

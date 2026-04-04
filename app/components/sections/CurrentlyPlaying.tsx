@@ -83,10 +83,10 @@ export function CurrentlyPlaying() {
     >
       <div className="relative">
         {/* Album Art */}
-        {item.album.images[0] && (
+        {item.album?.images?.[0] && (
           <div className="relative">
             <img
-              src={item.album.images[0].url}
+              src={item.album?.images?.[0]?.url}
               alt={item.name}
               className="w-full aspect-square object-cover"
             />

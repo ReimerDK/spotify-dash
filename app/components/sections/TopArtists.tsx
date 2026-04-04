@@ -67,9 +67,9 @@ export function TopArtists() {
             transition={{ delay: idx * 0.05, type: 'spring', damping: 20 }}
             className="group rounded-2xl border border-slate-200/10 bg-white/[0.02] backdrop-blur p-4 hover:bg-white/[0.05] transition-all cursor-pointer"
           >
-            {artist.images[0] && (
+            {artist.images?.[0] && (
               <img
-                src={artist.images[0].url}
+                src={artist.images?.[0]?.url}
                 alt={artist.name}
                 className="w-full aspect-square rounded-lg mb-3 object-cover group-hover:scale-105 transition-transform"
               />

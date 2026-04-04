@@ -73,9 +73,9 @@ export function TopTracks() {
             <div className="text-sm font-bold text-emerald-500 w-6">{idx + 1}</div>
 
             {/* Album Art */}
-            {track.album.images[0] && (
+            {track.album?.images?.[0] && (
               <img
-                src={track.album.images[0].url}
+                src={track.album?.images?.[0]?.url}
                 alt={track.name}
                 className="w-12 h-12 rounded object-cover group-hover:scale-110 transition-transform"
               />
