@@ -89,27 +89,29 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  // Use URL object to properly construct query parameters
-  const url = new URL(`${SPOTIFY_API_BASE}/artists/${artistId}/top-tracks`)
-  url.searchParams.set('market', 'DK')
+  const endpoint = `/artists/${artistId}/top-tracks?market=US`
+  const url = `${SPOTIFY_API_BASE}${endpoint}`
+  console.log('Artist tracks URL:', url.substring(0, 100))
 
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     })
 
+    console.log('Artist tracks status:', response.status)
+
     if (!response.ok) {
       const text = await response.text()
-      console.error('Artist top tracks API error', response.status, text.substring(0, 200))
-      throw new Error(`Artist tracks ${response.status}: ${text.substring(0, 100)}`)
+      console.log('Artist tracks error body:', text.substring(0, 150))
+      throw new Error(`Spotify ${response.status}`)
     }
 
     return response.json()
   } catch (e: any) {
-    console.error('getArtistTopTracks error:', String(e).substring(0, 300))
+    console.log('Artist tracks caught error:', e?.message || String(e).substring(0, 200))
     throw e
   }
 }
