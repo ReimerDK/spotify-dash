@@ -100,9 +100,9 @@ export function Search() {
                       transition={{ delay: idx * 0.05 }}
                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
                     >
-                      {track.album?.images[0] && (
+                      {track.album?.images?.[0] && (
                         <img
-                          src={track.album.images[0].url}
+                          src={track.album?.images?.[0]?.url}
                           alt={track.name}
                           className="w-10 h-10 rounded object-cover"
                         />
