@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Header } from './components/Header'
 import { ControlPanel } from './components/ControlPanel'
+import { MiniPlayer } from './components/MiniPlayer'
 import { TopArtists } from './components/sections/TopArtists'
 import { TopTracks } from './components/sections/TopTracks'
 import { CurrentlyPlaying } from './components/sections/CurrentlyPlaying'
@@ -52,8 +53,10 @@ export default function Home() {
       <ControlPanel isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       {/* Main Content */}
+      <MiniPlayer />
+
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-8">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 pb-24 space-y-8">
           {/* Asymmetric Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-max">
             {/* Currently Playing - Full width top */}
