@@ -84,17 +84,7 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  let market = 'DK'
-  try {
-    const profile = await getUserProfile(token)
-    if (profile?.country) {
-      market = profile.country.toUpperCase()
-    }
-  } catch (error) {
-    console.warn('Failed to get profile, using default market DK', error)
-  }
-  console.log(`Fetching artist top tracks for ${artistId} with market ${market}`)
-  return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=${market}`, token)
+  return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=DK`, token)
 }
 
 async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {
