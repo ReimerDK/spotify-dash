@@ -84,9 +84,14 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  const profile = await getUserProfile(token)
-  const market = profile.country || 'US'
-  return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=${market}`, token)
+  try {
+    const profile = await getUserProfile(token)
+    const market = profile?.country?.toUpperCase() || 'US'
+    return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=${market}`, token)
+  } catch {
+    // Fallback to US market if profile fetch fails
+    return spotifyFetch<any>(`/artists/${artistId}/top-tracks?market=US`, token)
+  }
 }
 
 async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {

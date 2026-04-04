@@ -79,6 +79,7 @@ export function TopArtists() {
     setTracksLoading(true)
     try {
       const res = await fetch(`/api/spotify/artist-top-tracks?id=${artist.id}`)
+      if (!res.ok) throw new Error(`API error: ${res.status}`)
       const data = await res.json()
       setTopTracks(data.tracks?.slice(0, 10) || [])
     } catch {
