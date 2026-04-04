@@ -21,11 +21,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await searchSpotify(session.accessToken, query)
+    const data = await searchSpotify(session.accessToken as string, query)
     return NextResponse.json(data)
   } catch (error: any) {
+    const message = error?.message || error?.error || JSON.stringify(error) || 'Failed to search'
+    console.error('Search error:', message)
     return NextResponse.json(
-      { error: error?.message || 'Failed to search' },
+      { error: message },
       { status: 500 }
     )
   }
