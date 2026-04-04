@@ -81,7 +81,7 @@ export function Playlists() {
                   {playlist.name}
                 </h3>
                 <p className="text-xs text-zinc-400">
-                  {playlist.tracks.total} tracks
+                  {playlist.tracks?.total ?? 0} tracks
                 </p>
               </div>
             </motion.a>
