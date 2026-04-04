@@ -33,11 +33,12 @@ export default function Home() {
 
   if (status === 'loading' || !mounted) {
     return (
-      <div className="min-h-[100dvh] bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-zinc-950 flex items-center justify-center" role="status" aria-label="Loading">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           className="w-8 h-8 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full"
+          aria-hidden="true"
         />
       </div>
     )

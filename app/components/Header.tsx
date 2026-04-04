@@ -33,9 +33,10 @@ export function Header({ onSettingsClick }: HeaderProps) {
           <button
             onClick={onSettingsClick}
             className="p-2 hover:bg-zinc-900 rounded-lg transition-colors text-zinc-400 hover:text-zinc-50"
+            aria-label="Open settings"
             title="Settings"
           >
-            <Gear size={24} />
+            <Gear size={24} aria-hidden="true" />
           </button>
 
           {/* User Menu */}
@@ -43,6 +44,9 @@ export function Header({ onSettingsClick }: HeaderProps) {
             <button
               onClick={() => setShowMenu(!showMenu)}
               className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 transition-colors"
+              aria-label="User menu"
+              aria-expanded={showMenu}
+              aria-haspopup="menu"
             >
               {session?.user?.image && (
                 <img

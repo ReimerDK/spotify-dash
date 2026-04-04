@@ -31,6 +31,7 @@ export function ControlPanel({ isOpen, onClose }: ControlPanelProps) {
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            aria-hidden="true"
           />
 
           {/* Panel */}
@@ -40,15 +41,19 @@ export function ControlPanel({ isOpen, onClose }: ControlPanelProps) {
             exit={{ x: 400, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed right-0 top-0 h-[100dvh] w-full max-w-sm z-50 bg-zinc-900 border-l border-slate-200/10"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-heading"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-slate-200/10">
-              <h2 className="text-xl font-bold">Settings</h2>
+              <h2 className="text-xl font-bold" id="settings-heading">Settings</h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-zinc-50"
+                aria-label="Close settings"
               >
-                <X size={24} />
+                <X size={24} aria-hidden="true" />
               </button>
             </div>
 
@@ -82,8 +87,9 @@ export function ControlPanel({ isOpen, onClose }: ControlPanelProps) {
                 <button
                   onClick={resetSections}
                   className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm font-medium transition-colors text-zinc-300 hover:text-zinc-50"
+                  aria-label="Reset all sections to default visibility"
                 >
-                  <ArrowCounterClockwise size={18} />
+                  <ArrowCounterClockwise size={18} aria-hidden="true" />
                   Reset to Defaults
                 </button>
               </div>
