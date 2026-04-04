@@ -89,7 +89,7 @@ export function Search() {
               <div>
                 <h3 className="text-lg font-semibold mb-3">Tracks</h3>
                 <div className="space-y-2">
-                  {results.tracks.items.slice(0, 5).map((track: any, idx: number) => (
+                  {results.tracks.items.filter(Boolean).slice(0, 5).map((track: any, idx: number) => (
                     <motion.a
                       key={track.id}
                       href={track.external_urls?.spotify}
@@ -124,7 +124,7 @@ export function Search() {
               <div>
                 <h3 className="text-lg font-semibold mb-3">Artists</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {results.artists.items.slice(0, 6).map((artist: any, idx: number) => (
+                  {results.artists.items.filter(Boolean).slice(0, 6).map((artist: any, idx: number) => (
                     <motion.a
                       key={artist.id}
                       href={artist.external_urls?.spotify}
@@ -154,7 +154,7 @@ export function Search() {
               <div>
                 <h3 className="text-lg font-semibold mb-3">Playlists</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {results.playlists.items.slice(0, 4).map((playlist: any, idx: number) => (
+                  {results.playlists.items.filter(Boolean).slice(0, 4).map((playlist: any, idx: number) => (
                     <motion.a
                       key={playlist.id}
                       href={playlist.external_urls?.spotify}
