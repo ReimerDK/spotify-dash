@@ -89,31 +89,28 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  const endpoint = `/artists/${artistId}/top-tracks?market=US`
-  const url = `${SPOTIFY_API_BASE}${endpoint}`
-  console.log('Artist tracks URL:', url.substring(0, 100))
+  console.log('getArtistTopTracks called with:', artistId, 'token length:', token?.length)
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
+  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`
+  console.log('URL to fetch:', url)
 
-    console.log('Artist tracks status:', response.status)
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
 
-    if (!response.ok) {
-      const text = await response.text()
-      console.log('Artist tracks error body:', text.substring(0, 150))
-      throw new Error(`Spotify ${response.status}`)
-    }
+  console.log('Response received, status:', response.status)
 
-    return response.json()
-  } catch (e: any) {
-    console.log('Artist tracks caught error:', e?.message || String(e).substring(0, 200))
-    throw e
+  if (!response.ok) {
+    const text = await response.text()
+    console.log('Error response:', text.substring(0, 100))
+    throw new Error(`Spotify API ${response.status}`)
   }
+
+  const data = await response.json()
+  console.log('Tracks count:', data.tracks?.length)
+  return data
 }
 
 async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {
