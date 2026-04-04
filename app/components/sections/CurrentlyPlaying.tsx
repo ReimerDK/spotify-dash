@@ -29,6 +29,7 @@ export function CurrentlyPlaying() {
         const res = await fetch('/api/spotify/currently-playing')
         if (!res.ok) throw new Error('Failed to fetch')
         const json = await res.json()
+        if (json.error) throw new Error(json.error)
         setData(json)
       } catch (err) {
         setError('Could not load currently playing')

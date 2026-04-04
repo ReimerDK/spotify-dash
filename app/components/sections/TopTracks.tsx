@@ -24,6 +24,7 @@ export function TopTracks() {
         const res = await fetch('/api/spotify/top-tracks')
         if (!res.ok) throw new Error('Failed to fetch tracks')
         const data = await res.json()
+        if (data.error) throw new Error(data.error)
         setTracks(data.items || [])
       } catch (err) {
         setError('Could not load your top tracks')

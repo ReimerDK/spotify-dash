@@ -23,6 +23,7 @@ export function Playlists() {
         const res = await fetch('/api/spotify/playlists')
         if (!res.ok) throw new Error('Failed to fetch playlists')
         const data = await res.json()
+        if (data.error) throw new Error(data.error)
         setPlaylists(data.items || [])
       } catch (err) {
         setError('Could not load your playlists')
