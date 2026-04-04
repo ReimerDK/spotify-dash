@@ -89,28 +89,23 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  console.log('getArtistTopTracks called with:', artistId, 'token length:', token?.length)
+  try {
+    console.log('1. Starting getArtistTopTracks')
+    const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`
+    console.log('2. URL:', url)
 
-  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`
-  console.log('URL to fetch:', url)
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    console.log('3. Status:', res.status)
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  console.log('Response received, status:', response.status)
-
-  if (!response.ok) {
-    const text = await response.text()
-    console.log('Error response:', text.substring(0, 100))
-    throw new Error(`Spotify API ${response.status}`)
+    const body = await res.json()
+    console.log('4. Got response')
+    return body
+  } catch (err: any) {
+    console.log('ERROR:', err.toString().substring(0, 150))
+    throw err
   }
-
-  const data = await response.json()
-  console.log('Tracks count:', data.tracks?.length)
-  return data
 }
 
 async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {
