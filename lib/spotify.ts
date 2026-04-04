@@ -89,23 +89,17 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  try {
-    console.log('1. Starting getArtistTopTracks')
-    const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`
-    console.log('2. URL:', url)
+  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`
 
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    console.log('3. Status:', res.status)
+  const response = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
 
-    const body = await res.json()
-    console.log('4. Got response')
-    return body
-  } catch (err: any) {
-    console.log('ERROR:', err.toString().substring(0, 150))
-    throw err
+  if (!response.ok) {
+    throw new Error(`Spotify API error ${response.status}`)
   }
+
+  return response.json()
 }
 
 async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {
