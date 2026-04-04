@@ -89,23 +89,35 @@ export async function getUserProfile(token: string) {
 }
 
 export async function getArtistTopTracks(token: string, artistId: string) {
-  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=DK`
+  // Get artist info first to get the artist name
+  const artistUrl = `https://api.spotify.com/v1/artists/${artistId}`
+  const artistRes = await fetch(artistUrl, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
 
-  try {
-    const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+  if (!artistRes.ok) {
+    throw new Error('Could not fetch artist')
+  }
 
-    if (!response.ok) {
-      const error = await response.text()
-      console.error(`Spotify ${response.status}:`, error.substring(0, 150))
-      throw new Error(`API ${response.status}`)
-    }
+  const artist = await artistRes.json()
 
-    return response.json()
-  } catch (e: any) {
-    console.error('Artist tracks error:', e.message)
-    throw e
+  // Search for the artist's top tracks using search API
+  const query = encodeURIComponent(`artist:"${artist.name}"`)
+  const searchUrl = `https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`
+
+  const searchRes = await fetch(searchUrl, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+
+  if (!searchRes.ok) {
+    throw new Error('Search failed')
+  }
+
+  const searchData = await searchRes.json()
+
+  // Return in the same format as the top-tracks endpoint
+  return {
+    tracks: searchData.tracks?.items || []
   }
 }
 
