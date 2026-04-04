@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎵 Spotify Dash
+
+A beautiful, modern Spotify dashboard built with Next.js, React, Tailwind CSS, and Framer Motion.
+
+## Features
+
+- 🎤 **Top Artists** - See your most-played artists with images
+- 🎵 **Top Tracks** - Browse your favorite tracks with rankings
+- 🎶 **Currently Playing** - Real-time display of what's playing with album art and progress
+- 📋 **Playlists** - View your saved playlists in a smooth carousel
+- 🔍 **Search** - Search for artists, tracks, and playlists on Spotify
+- ⚙️ **Control Panel** - Toggle sections on/off with persistent settings
+- 🌙 **Dark Mode** - Premium dark theme with glassmorphism design
+- ✨ **Smooth Animations** - Framer Motion micro-interactions and perpetual animations
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS v3
+- **Authentication**: NextAuth.js (Spotify OAuth)
+- **Animations**: Framer Motion
+- **State Management**: Zustand
+- **Icons**: Phosphor Icons
+- **Language**: TypeScript
 
 ## Getting Started
 
-First, run the development server:
+### 1. Prerequisites
+
+- Node.js 18+ and npm
+- Spotify Developer Account
+
+### 2. Spotify Developer Setup
+
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Create a new app or use existing one
+3. Accept the terms and create
+4. Note your **Client ID** and **Client Secret**
+5. Add Redirect URI: `http://localhost:3000/api/auth/callback/spotify`
+
+### 3. Environment Variables
+
+Create a `.env.local` file:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in your Spotify credentials:
+
+```env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
+SPOTIFY_CLIENT_ID=<your_client_id>
+SPOTIFY_CLIENT_SECRET=<your_client_secret>
+SPOTIFY_REDIRECT_URI=http://localhost:3000/api/auth/callback/spotify
+```
+
+### 4. Install Dependencies
+
+```bash
+npm install
+```
+
+### 5. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 6. Login
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Click "Connect with Spotify" and authorize the app to access your profile.
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+spotify-dash/
+├── app/
+│   ├── api/
+│   │   ├── auth/[...nextauth].ts       # OAuth configuration
+│   │   └── spotify/
+│   │       ├── top-artists.ts
+│   │       ├── top-tracks.ts
+│   │       ├── currently-playing.ts
+│   │       ├── playlists.ts
+│   │       └── search.ts
+│   ├── components/
+│   │   ├── Header.tsx
+│   │   ├── ControlPanel.tsx
+│   │   └── sections/
+│   │       ├── TopArtists.tsx
+│   │       ├── TopTracks.tsx
+│   │       ├── CurrentlyPlaying.tsx
+│   │       ├── Playlists.tsx
+│   │       └── Search.tsx
+│   ├── login/page.tsx
+│   ├── page.tsx
+│   └── layout.tsx
+├── lib/
+│   ├── spotify.ts
+│   └── store.ts
+└── package.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Build & Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Production Build
 
-## Deploy on Vercel
+```bash
+npm run build
+npm start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Deploy to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push to GitHub
+2. Connect repo to Vercel
+3. Add environment variables
+4. Deploy
+
+**Note**: Update `NEXTAUTH_URL` and `SPOTIFY_REDIRECT_URI` to your production domain.
+
+## License
+
+MIT
