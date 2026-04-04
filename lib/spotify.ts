@@ -82,3 +82,25 @@ export async function searchSpotify(
 export async function getUserProfile(token: string) {
   return spotifyFetch<any>('/me', token)
 }
+
+async function spotifyCommand(endpoint: string, token: string, method: string, body?: object) {
+  const url = `${SPOTIFY_API_BASE}${endpoint}`
+  const response = await fetch(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  if (!response.ok && response.status !== 204) {
+    throw { error: `Spotify API Error: ${response.status}` }
+  }
+}
+
+export const playerPlay = (token: string) => spotifyCommand('/me/player/play', token, 'PUT')
+export const playerPause = (token: string) => spotifyCommand('/me/player/pause', token, 'PUT')
+export const playerNext = (token: string) => spotifyCommand('/me/player/next', token, 'POST')
+export const playerPrevious = (token: string) => spotifyCommand('/me/player/previous', token, 'POST')
+export const playerSeek = (token: string, position_ms: number) =>
+  spotifyCommand(`/me/player/seek?position_ms=${position_ms}`, token, 'PUT')

@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth/next'
 import { NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
-import { searchSpotify } from '@/lib/spotify'
 
 export async function GET(req: Request) {
   try {
@@ -9,10 +8,7 @@ export async function GET(req: Request) {
     const query = searchParams.get('q')
 
     if (!query) {
-      return NextResponse.json(
-        { error: 'Missing search query' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing search query' }, { status: 400 })
     }
 
     const session = await getServerSession(authOptions)
@@ -21,14 +17,29 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await searchSpotify(session.accessToken as string, query)
-    return NextResponse.json(data)
-  } catch (error: any) {
-    const message = error?.message || error?.error || JSON.stringify(error) || 'Failed to search'
-    console.error('Search error:', message)
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
+    const encodedQuery = encodeURIComponent(query)
+    const spotifyRes = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodedQuery}&type=track,artist,playlist&limit=10`,
+      {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      }
     )
+
+    const body = await spotifyRes.json()
+
+    if (!spotifyRes.ok) {
+      console.error('Spotify search failed:', spotifyRes.status, JSON.stringify(body))
+      return NextResponse.json(
+        { error: body?.error?.message || `Spotify error ${spotifyRes.status}` },
+        { status: spotifyRes.status }
+      )
+    }
+
+    return NextResponse.json(body)
+  } catch (error: any) {
+    console.error('Search route error:', error?.message || String(error))
+    return NextResponse.json({ error: 'Failed to search' }, { status: 500 })
   }
 }

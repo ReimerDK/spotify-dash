@@ -11,6 +11,8 @@ export const authOptions: NextAuthOptions = {
           scope: [
             'user-top-read',
             'user-read-currently-playing',
+            'user-read-playback-state',
+            'user-modify-playback-state',
             'user-read-recently-played',
             'playlist-read-private',
             'user-library-read',
