@@ -11,6 +11,8 @@ async function spotifyFetch<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${SPOTIFY_API_BASE}${endpoint}`
+  console.log('Spotify fetch:', { endpoint, url })
+
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -20,8 +22,11 @@ async function spotifyFetch<T>(
     },
   })
 
+  console.log('Response status:', response.status)
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
+    console.log('API error response:', error)
     throw {
       error: `Spotify API Error: ${response.status}`,
       message: error.error?.message || response.statusText,
