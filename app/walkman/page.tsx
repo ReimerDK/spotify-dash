@@ -31,10 +31,8 @@ export default function WalkmanPage() {
   if (!session) return null
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-950 flex items-center justify-center p-4">
-      <div className="relative z-10">
-        <Walkman />
-      </div>
+    <div className="min-h-[100dvh]">
+      <Walkman />
     </div>
   )
 }
