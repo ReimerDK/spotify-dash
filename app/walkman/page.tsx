@@ -84,45 +84,25 @@ export default function WalkmanPage() {
   const handlePlayTrack = async (index: number) => {
     if (!topTracks[index]) return
     setCurrentTrackIndex(index)
+    setPlaying(true)
     setError(null)
 
-    try {
-      const res = await fetch('/api/spotify/player', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'play_uri', uris: [topTracks[index].uri] }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error || 'Playback failed')
-        setPlaying(false)
-        return
-      }
-
-      setPlaying(true)
-    } catch (err) {
-      console.error('Play error:', err)
-      setError('Play failed')
-      setPlaying(false)
-    }
+    await fetch('/api/spotify/player', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'play_uri', uris: [topTracks[index].uri] }),
+    })
   }
 
   const handleTogglePlay = async () => {
     if (playing) {
-      // Pause
-      try {
-        await fetch('/api/spotify/player', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'pause' }),
-        })
-        setPlaying(false)
-      } catch (err) {
-        console.error('Pause error:', err)
-      }
+      await fetch('/api/spotify/player', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'pause' }),
+      })
+      setPlaying(false)
     } else {
-      // Resume or play current track
       await handlePlayTrack(currentTrackIndex)
     }
   }
