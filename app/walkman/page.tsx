@@ -95,7 +95,7 @@ export default function WalkmanPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setError('No active device. Play something on Spotify first.')
+        setError(data.error || 'Playback failed')
         setPlaying(false)
         return
       }
@@ -105,6 +105,25 @@ export default function WalkmanPage() {
       console.error('Play error:', err)
       setError('Play failed')
       setPlaying(false)
+    }
+  }
+
+  const handleTogglePlay = async () => {
+    if (playing) {
+      // Pause
+      try {
+        await fetch('/api/spotify/player', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'pause' }),
+        })
+        setPlaying(false)
+      } catch (err) {
+        console.error('Pause error:', err)
+      }
+    } else {
+      // Resume or play current track
+      await handlePlayTrack(currentTrackIndex)
     }
   }
 
@@ -150,10 +169,11 @@ export default function WalkmanPage() {
           artistImage={selectedArtist?.images?.[0]?.url}
           isPlaying={playing}
           currentTrack={topTracks[currentTrackIndex]}
+          currentTrackIndex={currentTrackIndex}
           tracks={topTracks}
           onSearch={handleSearch}
-          onSelectArtist={handleSelectArtist}
           onPlayTrack={handlePlayTrack}
+          onTogglePlay={handleTogglePlay}
           onPlayNext={handlePlayNext}
           onPlayPrev={handlePlayPrev}
           loading={loading}

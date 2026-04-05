@@ -17,10 +17,11 @@ interface WalkmanProps {
   artistImage?: string
   isPlaying: boolean
   currentTrack?: Track
+  currentTrackIndex: number
   tracks: Track[]
   onSearch: (query: string) => Promise<void>
-  onSelectArtist: (name: string) => void
   onPlayTrack: (index: number) => Promise<void>
+  onTogglePlay: () => void
   onPlayNext: () => void
   onPlayPrev: () => void
   loading: boolean
@@ -32,24 +33,23 @@ export function Walkman({
   artistImage,
   isPlaying,
   currentTrack,
+  currentTrackIndex,
   tracks,
   onSearch,
-  onSelectArtist,
   onPlayTrack,
+  onTogglePlay,
   onPlayNext,
   onPlayPrev,
   loading,
   error,
 }: WalkmanProps) {
   const [searchInput, setSearchInput] = useState('')
-  const [trackIndex, setTrackIndex] = useState(0)
   const [showTracks, setShowTracks] = useState(false)
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchInput.trim()) return
     await onSearch(searchInput)
-    setTrackIndex(0)
   }
 
   return (
@@ -136,12 +136,11 @@ export function Walkman({
                   <button
                     key={track.id}
                     onClick={() => {
-                      setTrackIndex(idx)
                       onPlayTrack(idx)
                       setShowTracks(false)
                     }}
                     className={`w-full text-left px-3 py-1.5 text-[10px] border-t border-gray-800 transition-colors ${
-                      currentTrack?.id === track.id
+                      currentTrackIndex === idx
                         ? 'bg-yellow-500/30 text-yellow-100'
                         : 'text-yellow-400 hover:bg-gray-800'
                     }`}
@@ -186,12 +185,13 @@ export function Walkman({
 
           <motion.button
             whileTap={{ scale: 0.85 }}
+            onClick={tracks.length > 0 ? onTogglePlay : undefined}
             className={`p-2 rounded-full font-bold transition-colors ${
               isPlaying
                 ? 'bg-red-500 hover:bg-red-600 text-white'
                 : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-            title={isPlaying ? 'Playing' : 'Ready'}
+            } ${tracks.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}
           </motion.button>
