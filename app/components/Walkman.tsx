@@ -282,8 +282,8 @@ export function Walkman() {
                   placeholder="Artist name…"
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
-                  className="w-full bg-transparent py-1.5 text-sm focus:outline-none"
-                  style={{ color: '#ccc', caretColor: '#7c3aed', fontFamily: 'var(--font-geist-sans)' }}
+                  className="w-full bg-transparent py-1.5 text-sm focus:outline-none select-text"
+                  style={{ color: '#ccc', caretColor: '#7c3aed', fontFamily: 'var(--font-geist-sans)', userSelect: 'text', WebkitUserSelect: 'text' }}
                 />
                 <button type="submit" className="absolute right-0 top-1/2 -translate-y-1/2 p-1" style={{ color: '#7c3aed' }}>
                   <MagnifyingGlass size={14} weight="light" />
