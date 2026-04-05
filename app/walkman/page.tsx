@@ -31,8 +31,7 @@ export default function WalkmanPage() {
   if (!session) return null
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-amber-900 via-amber-950 to-yellow-950 flex items-center justify-center p-4">
-      <div className="fixed inset-0 opacity-5 mix-blend-multiply pointer-events-none bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,.5)_10px,rgba(0,0,0,.5)_20px)]" />
+    <div className="min-h-[100dvh] bg-zinc-950 flex items-center justify-center p-4">
       <div className="relative z-10">
         <Walkman />
       </div>
