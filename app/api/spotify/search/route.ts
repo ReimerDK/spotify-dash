@@ -17,9 +17,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const type = searchParams.get('type') || 'track,artist,playlist'
+    const limit = searchParams.get('limit') || '10'
     const encodedQuery = encodeURIComponent(query)
     const spotifyRes = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodedQuery}&type=track,artist,playlist&limit=10`,
+      `https://api.spotify.com/v1/search?q=${encodedQuery}&type=${type}&limit=${limit}`,
       {
         headers: {
           Authorization: `Bearer ${session.accessToken}`,

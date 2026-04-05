@@ -1,8 +1,9 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
-import { MusicNote, SignOut, Gear } from '@phosphor-icons/react'
+import { MusicNote, SignOut, Gear, CassetteTape } from '@phosphor-icons/react'
 import { useState } from 'react'
+import Link from 'next/link'
 
 interface HeaderProps {
   onSettingsClick: () => void
@@ -29,6 +30,15 @@ export function Header({ onSettingsClick }: HeaderProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
+          {/* Walkman Link */}
+          <Link
+            href="/walkman"
+            className="p-2 hover:bg-zinc-900 rounded-lg transition-colors text-zinc-400 hover:text-emerald-500"
+            title="Walkman Player"
+          >
+            <CassetteTape size={24} aria-hidden="true" />
+          </Link>
+
           {/* Settings Button */}
           <button
             onClick={onSettingsClick}
