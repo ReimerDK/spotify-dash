@@ -32,6 +32,7 @@ export default function WalkmanPage() {
   const [loading, setLoading] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -77,16 +78,27 @@ export default function WalkmanPage() {
   const handlePlayTrack = async (index: number) => {
     if (!topTracks[index]) return
     setCurrentTrackIndex(index)
-    setPlaying(true)
+    setError(null)
 
     try {
-      await fetch('/api/spotify/player', {
+      const res = await fetch('/api/spotify/player', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'play_uri', uris: [topTracks[index].uri] }),
       })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to play track. Make sure you have an active Spotify device.')
+        setPlaying(false)
+        return
+      }
+
+      setPlaying(true)
     } catch (error) {
       console.error('Play error:', error)
+      setError('Failed to play track')
+      setPlaying(false)
     }
   }
 
@@ -125,6 +137,17 @@ export default function WalkmanPage() {
             handlePlayTrack(prevIndex)
           }}
         />
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 px-4 py-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm max-w-md"
+          >
+            {error}
+          </motion.div>
+        )}
 
         {/* Search Section */}
         <motion.div

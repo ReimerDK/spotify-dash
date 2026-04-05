@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ ok: true })
   } catch (error: any) {
+    console.error('Player action failed:', action, error?.message || String(error))
     return NextResponse.json({ error: error?.message || 'Playback command failed' }, { status: 500 })
   }
 }
