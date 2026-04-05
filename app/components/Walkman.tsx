@@ -1,194 +1,238 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Play, Pause, SkipBack, SkipForward } from '@phosphor-icons/react'
+import { Play, Pause, SkipBack, SkipForward, MagnifyingGlass, CaretDown, CaretUp } from '@phosphor-icons/react'
+import { useState } from 'react'
+
+interface Track {
+  id: string
+  name: string
+  artists: { name: string }[]
+  duration_ms: number
+  album: { images: { url: string }[] }
+}
 
 interface WalkmanProps {
   artistName?: string
   artistImage?: string
   isPlaying: boolean
-  currentTrack?: {
-    name: string
-    artists: { name: string }[]
-    duration_ms: number
-  }
+  currentTrack?: Track
+  tracks: Track[]
+  onSearch: (query: string) => Promise<void>
+  onSelectArtist: (name: string) => void
+  onPlayTrack: (index: number) => Promise<void>
   onPlayNext: () => void
   onPlayPrev: () => void
+  loading: boolean
+  error?: string | null
 }
 
 export function Walkman({
-  artistName = 'Select an artist',
+  artistName = 'Select artist',
   artistImage,
   isPlaying,
   currentTrack,
+  tracks,
+  onSearch,
+  onSelectArtist,
+  onPlayTrack,
   onPlayNext,
   onPlayPrev,
+  loading,
+  error,
 }: WalkmanProps) {
+  const [searchInput, setSearchInput] = useState('')
+  const [trackIndex, setTrackIndex] = useState(0)
+  const [showTracks, setShowTracks] = useState(false)
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchInput.trim()) return
+    await onSearch(searchInput)
+    setTrackIndex(0)
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-      className="relative w-full max-w-md"
+      transition={{ type: 'spring', damping: 20 }}
+      className="w-full max-w-sm mx-auto"
     >
-      {/* Main Device Body */}
-      <div className="relative bg-gradient-to-b from-yellow-100 to-yellow-200 rounded-3xl p-8 shadow-2xl border-8 border-yellow-300/50 aspect-[9/16]">
-        {/* Metallic Top Rim */}
-        <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-gray-300 to-gray-200 rounded-t-3xl border-b-2 border-gray-400/50" />
+      {/* Main Walkman Body */}
+      <div className="relative bg-gradient-to-b from-yellow-100 via-yellow-50 to-yellow-100 rounded-2xl shadow-2xl p-6 aspect-[3/4] border-8 border-yellow-300/60 flex flex-col">
+        {/* Top Trim */}
+        <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-gray-400 to-gray-300 rounded-t-xl border-b border-gray-500/30" />
 
-        <div className="h-full flex flex-col">
-          {/* Speaker Area Top */}
-          <div className="flex items-center justify-center gap-1 mb-4">
-            {[...Array(4)].map((_, i) => (
-              <motion.div
-                key={`speaker-${i}`}
-                animate={isPlaying ? { scaleY: [1, 1.2, 1] } : {}}
-                transition={{
-                  duration: 0.5,
-                  repeat: isPlaying ? Infinity : 0,
-                  delay: i * 0.1,
-                }}
-                className="w-1.5 h-12 bg-gradient-to-b from-yellow-600 to-yellow-700 rounded-full shadow-md"
-              />
-            ))}
-          </div>
+        {/* Display Area */}
+        <div className="mt-2 mb-4 p-3 bg-gray-900 rounded-lg border-2 border-gray-800 shadow-inner">
+          {error ? (
+            <p className="text-xs text-red-400 font-mono line-clamp-2">{error}</p>
+          ) : (
+            <>
+              <p className="text-[10px] text-yellow-600 font-mono uppercase tracking-wider mb-1">
+                {artistName.slice(0, 16)}
+              </p>
+              <p className="text-xs text-yellow-100 font-semibold line-clamp-2 h-8">
+                {currentTrack?.name || 'Ready'}
+              </p>
+            </>
+          )}
+        </div>
 
-          {/* Cassette Deck */}
-          <div className="flex-1 flex flex-col items-center justify-center mb-6">
-            <div className="w-48 h-40 relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 shadow-inner border-4 border-gray-700">
-              {/* Cassette Tape */}
-              <div className="absolute inset-0 flex items-center justify-center gap-4 p-6">
-                {/* Left Reel */}
+        {/* Cassette Area */}
+        <div className="flex-1 flex items-center justify-center mb-4 bg-gray-900 rounded-xl p-4 border-4 border-gray-800 relative overflow-hidden">
+          {/* Animated Reels */}
+          <div className="flex items-center justify-center gap-3 w-full">
+            <motion.div
+              animate={isPlaying ? { rotate: 360 } : {}}
+              transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: 'linear' }}
+              className="w-12 h-12 rounded-full border-3 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0"
+            >
+              <div className="w-7 h-7 rounded-full border-2 border-gray-500 bg-gray-900" />
+            </motion.div>
+
+            {/* Tape */}
+            <div className="flex-1 h-3 bg-gradient-to-r from-gray-700 to-gray-800 rounded-sm relative overflow-hidden">
+              {isPlaying && (
                 <motion.div
-                  animate={isPlaying ? { rotate: 360 } : {}}
-                  transition={{
-                    duration: 2,
-                    repeat: isPlaying ? Infinity : 0,
-                    ease: 'linear',
-                  }}
-                  className="w-16 h-16 rounded-full border-4 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center"
-                >
-                  <div className="w-10 h-10 rounded-full border-3 border-gray-500 bg-gray-800" />
-                </motion.div>
-
-                {/* Tape Strip */}
-                <div className="flex-1 h-4 bg-gradient-to-r from-gray-600 to-gray-800 rounded-sm relative overflow-hidden shadow-md">
-                  {isPlaying && (
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-30"
-                      animate={{ x: ['100%', '-100%'] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                    />
-                  )}
-                </div>
-
-                {/* Right Reel */}
-                <motion.div
-                  animate={isPlaying ? { rotate: -360 } : {}}
-                  transition={{
-                    duration: 2,
-                    repeat: isPlaying ? Infinity : 0,
-                    ease: 'linear',
-                  }}
-                  className="w-16 h-16 rounded-full border-4 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center"
-                >
-                  <div className="w-10 h-10 rounded-full border-3 border-gray-500 bg-gray-800" />
-                </motion.div>
-              </div>
-
-              {/* Artist Info on Cassette */}
-              <div className="absolute bottom-3 left-4 right-4 text-center">
-                <p className="text-xs font-bold text-gray-300 truncate">{artistName}</p>
-              </div>
-            </div>
-
-            {/* Artist Image Display */}
-            {artistImage && (
-              <motion.div
-                animate={isPlaying ? { rotateY: [0, 360] } : {}}
-                transition={{ duration: 3, repeat: isPlaying ? Infinity : 0, ease: 'linear' }}
-                className="mt-6 w-32 h-32 rounded-xl overflow-hidden border-4 border-yellow-300 shadow-lg"
-              >
-                <img
-                  src={artistImage}
-                  alt={artistName}
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-40"
+                  animate={{ x: ['100%', '-100%'] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
                 />
-              </motion.div>
-            )}
-
-            {/* Track Title Display */}
-            {currentTrack && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-6 w-full text-center px-4"
-              >
-                <p className="text-xs text-yellow-900 font-mono uppercase tracking-wider mb-1">Now Playing</p>
-                <p className="text-sm font-bold text-yellow-950 line-clamp-2">{currentTrack.name}</p>
-              </motion.div>
-            )}
-          </div>
-
-          {/* Control Buttons */}
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={onPlayPrev}
-              className="p-3 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-bold transition-colors shadow-lg"
-            >
-              <SkipBack size={20} weight="fill" />
-            </motion.button>
-
-            <motion.button
-              whileTap={{ scale: 0.85 }}
-              className={`p-4 rounded-full font-bold transition-colors shadow-lg ${
-                isPlaying
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-green-500 hover:bg-green-600 text-white'
-              }`}
-            >
-              {isPlaying ? <Pause size={24} weight="fill" /> : <Play size={24} weight="fill" />}
-            </motion.button>
-
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={onPlayNext}
-              className="p-3 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-bold transition-colors shadow-lg"
-            >
-              <SkipForward size={20} weight="fill" />
-            </motion.button>
-          </div>
-
-          {/* Volume Slider Indicator */}
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="text-xs text-yellow-900 font-mono">VOL</span>
-            <div className="w-32 h-2 bg-yellow-300 rounded-full shadow-inner flex items-center px-1">
-              <motion.div
-                animate={isPlaying ? { width: ['10%', '80%', '10%'] } : { width: '40%' }}
-                transition={{
-                  duration: 2,
-                  repeat: isPlaying ? Infinity : 0,
-                  ease: 'easeInOut',
-                }}
-                className="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full"
-              />
+              )}
             </div>
-          </div>
 
-          {/* Model/Brand Text */}
-          <div className="text-center pb-2">
-            <p className="text-xs font-bold text-yellow-900 tracking-widest">SPOTIFY</p>
-            <p className="text-[10px] text-yellow-800 font-mono">WALKMAN Pro</p>
+            <motion.div
+              animate={isPlaying ? { rotate: -360 } : {}}
+              transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: 'linear' }}
+              className="w-12 h-12 rounded-full border-3 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0"
+            >
+              <div className="w-7 h-7 rounded-full border-2 border-gray-500 bg-gray-900" />
+            </motion.div>
           </div>
         </div>
 
-        {/* Metallic Bottom Rim */}
-        <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-b from-gray-200 to-gray-300 rounded-b-3xl border-t-2 border-gray-400/50" />
+        {/* Track List Dropdown */}
+        {tracks.length > 0 && (
+          <motion.div className="mb-4 bg-gray-900 rounded-lg border-2 border-gray-800 overflow-hidden">
+            <button
+              onClick={() => setShowTracks(!showTracks)}
+              className="w-full flex items-center justify-between px-3 py-2 text-xs text-yellow-300 hover:bg-gray-800 transition-colors"
+            >
+              <span className="font-mono">{tracks.length} tracks</span>
+              <motion.div animate={{ rotate: showTracks ? 180 : 0 }}>
+                <CaretDown size={12} />
+              </motion.div>
+            </button>
+
+            {showTracks && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: 'auto' }}
+                className="max-h-32 overflow-y-auto border-t border-gray-800"
+              >
+                {tracks.slice(0, 8).map((track, idx) => (
+                  <button
+                    key={track.id}
+                    onClick={() => {
+                      setTrackIndex(idx)
+                      onPlayTrack(idx)
+                      setShowTracks(false)
+                    }}
+                    className={`w-full text-left px-3 py-1.5 text-[10px] border-t border-gray-800 transition-colors ${
+                      currentTrack?.id === track.id
+                        ? 'bg-yellow-500/30 text-yellow-100'
+                        : 'text-yellow-400 hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="font-mono text-yellow-600">{idx + 1}.</span> {track.name.slice(0, 20)}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Search Box */}
+        <form onSubmit={handleSearch} className="mb-3 relative">
+          <input
+            type="text"
+            placeholder="Artist..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            maxLength={20}
+            className="w-full px-2 py-1.5 text-xs rounded bg-yellow-50 border border-yellow-300 text-yellow-900 placeholder-yellow-600/60 focus:outline-none focus:border-yellow-500"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-yellow-600 hover:text-yellow-700 disabled:opacity-50"
+          >
+            <MagnifyingGlass size={14} weight="bold" />
+          </button>
+        </form>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={onPlayPrev}
+            className="p-1.5 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 transition-colors"
+            title="Previous"
+          >
+            <SkipBack size={14} weight="fill" />
+          </motion.button>
+
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            className={`p-2 rounded-full font-bold transition-colors ${
+              isPlaying
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-green-500 hover:bg-green-600 text-white'
+            }`}
+            title={isPlaying ? 'Playing' : 'Ready'}
+          >
+            {isPlaying ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}
+          </motion.button>
+
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={onPlayNext}
+            className="p-1.5 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 transition-colors"
+            title="Next"
+          >
+            <SkipForward size={14} weight="fill" />
+          </motion.button>
+        </div>
+
+        {/* Volume Indicator */}
+        <div className="flex items-center justify-center gap-1">
+          <span className="text-[9px] text-yellow-900 font-mono font-bold">VOL</span>
+          <div className="flex-1 h-1.5 bg-yellow-300 rounded-full shadow-inner flex items-center px-0.5">
+            <motion.div
+              animate={isPlaying ? { width: ['15%', '70%', '15%'] } : { width: '30%' }}
+              transition={{
+                duration: 2,
+                repeat: isPlaying ? Infinity : 0,
+                ease: 'easeInOut',
+              }}
+              className="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full"
+            />
+          </div>
+        </div>
+
+        {/* Brand Text */}
+        <div className="text-center mt-2 text-[9px] text-yellow-900 font-bold tracking-widest">
+          SPOTIFY WALKMAN
+        </div>
+
+        {/* Bottom Trim */}
+        <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-gray-300 to-gray-400 rounded-b-xl border-t border-gray-500/30" />
       </div>
 
-      {/* Subtle Shadow/Shine Effect */}
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none" />
+      {/* Shine Effect */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none" />
     </motion.div>
   )
 }
