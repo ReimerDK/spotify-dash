@@ -1,56 +1,159 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Play, Pause, SkipBack, SkipForward, MagnifyingGlass, CaretDown, CaretUp } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { Play, Pause, SkipBack, SkipForward, MagnifyingGlass, CaretDown } from '@phosphor-icons/react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
+
+interface SpotifySDKPlayer {
+  connect(): Promise<boolean>
+  disconnect(): void
+  addListener(event: string, cb: (data: any) => void): void
+  pause(): Promise<void>
+  resume(): Promise<void>
+}
+
 
 interface Track {
   id: string
+  uri: string
   name: string
   artists: { name: string }[]
   duration_ms: number
   album: { images: { url: string }[] }
 }
 
-interface WalkmanProps {
-  artistName?: string
-  artistImage?: string
-  isPlaying: boolean
-  currentTrack?: Track
-  currentTrackIndex: number
-  tracks: Track[]
-  onSearch: (query: string) => Promise<void>
-  onPlayTrack: (index: number) => Promise<void>
-  onTogglePlay: () => void
-  onPlayNext: () => void
-  onPlayPrev: () => void
-  loading: boolean
-  error?: string | null
-}
+export function Walkman() {
+  const { data: session } = useSession()
+  const playerRef = useRef<SpotifySDKPlayer | null>(null)
+  const deviceIdRef = useRef<string | null>(null)
 
-export function Walkman({
-  artistName = 'Select artist',
-  artistImage,
-  isPlaying,
-  currentTrack,
-  currentTrackIndex,
-  tracks,
-  onSearch,
-  onPlayTrack,
-  onTogglePlay,
-  onPlayNext,
-  onPlayPrev,
-  loading,
-  error,
-}: WalkmanProps) {
+  const [tracks, setTracks] = useState<Track[]>([])
+  const [artistName, setArtistName] = useState('')
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [showTracks, setShowTracks] = useState(false)
+  const [ready, setReady] = useState(false)
+
+  // Initialize Web Playback SDK — identical pattern to MiniPlayer
+  useEffect(() => {
+    if (!session?.accessToken) return
+    const token = session.accessToken as string
+
+    const initPlayer = () => {
+      if (playerRef.current) return
+
+      const player = new window.Spotify.Player({
+        name: 'Spotify Walkman',
+        getOAuthToken: (cb) => cb(token),
+        volume: 0.8,
+      })
+
+      player.addListener('ready', async ({ device_id }: { device_id: string }) => {
+        deviceIdRef.current = device_id
+        // Activate this device
+        await fetch('https://api.spotify.com/v1/me/player', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ device_ids: [device_id] }),
+        })
+        setReady(true)
+      })
+
+      player.addListener('player_state_changed', (s: any) => {
+        if (!s) return
+        setIsPlaying(!s.paused)
+      })
+
+      player.connect()
+      playerRef.current = player
+    }
+
+    if (window.Spotify) {
+      initPlayer()
+    } else {
+      const prev = window.onSpotifyWebPlaybackSDKReady
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        prev?.()
+        initPlayer()
+      }
+    }
+
+    if (!document.getElementById('spotify-sdk')) {
+      const script = document.createElement('script')
+      script.id = 'spotify-sdk'
+      script.src = 'https://sdk.scdn.co/spotify-player.js'
+      script.async = true
+      document.body.appendChild(script)
+    }
+
+    return () => {
+      playerRef.current?.disconnect()
+      playerRef.current = null
+    }
+  }, [session?.accessToken])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchInput.trim()) return
-    await onSearch(searchInput)
+    setLoading(true)
+    setTracks([])
+    setIsPlaying(false)
+
+    try {
+      const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(searchInput)}&type=artist&limit=1`)
+      const data = await res.json()
+      const artist = data.artists?.items?.[0]
+      if (!artist) return
+
+      setArtistName(artist.name)
+
+      const tracksRes = await fetch(`/api/spotify/artist-top-tracks?id=${artist.id}`)
+      const tracksData = await tracksRes.json()
+      setTracks(tracksData.tracks?.slice(0, 10) || [])
+      setCurrentIndex(0)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  // Play a specific track by URI using the SDK device_id — same approach as MiniPlayer
+  const play = async (index: number) => {
+    if (!tracks[index] || !session?.accessToken) return
+    setCurrentIndex(index)
+
+    const token = session.accessToken as string
+    const deviceId = deviceIdRef.current
+
+    await fetch(`https://api.spotify.com/v1/me/player/play${deviceId ? `?device_id=${deviceId}` : ''}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ uris: [tracks[index].uri] }),
+    })
+    setIsPlaying(true)
+  }
+
+  const togglePlay = () => {
+    if (isPlaying) {
+      playerRef.current?.pause()
+      setIsPlaying(false)
+    } else {
+      play(currentIndex)
+    }
+  }
+
+  const next = () => play((currentIndex + 1) % tracks.length)
+  const prev = () => play(currentIndex === 0 ? tracks.length - 1 : currentIndex - 1)
+
+  const currentTrack = tracks[currentIndex]
 
   return (
     <motion.div
@@ -59,41 +162,37 @@ export function Walkman({
       transition={{ type: 'spring', damping: 20 }}
       className="w-full max-w-sm mx-auto"
     >
-      {/* Main Walkman Body */}
-      <div className="relative bg-gradient-to-b from-yellow-100 via-yellow-50 to-yellow-100 rounded-2xl shadow-2xl p-6 aspect-[3/4] border-8 border-yellow-300/60 flex flex-col">
+      <div className="relative bg-gradient-to-b from-yellow-100 via-yellow-50 to-yellow-100 rounded-2xl shadow-2xl p-6 border-8 border-yellow-300/60 flex flex-col gap-4">
         {/* Top Trim */}
         <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-gray-400 to-gray-300 rounded-t-xl border-b border-gray-500/30" />
 
-        {/* Display Area */}
-        <div className="mt-2 mb-4 p-3 bg-gray-900 rounded-lg border-2 border-gray-800 shadow-inner">
-          {error ? (
-            <p className="text-xs text-red-400 font-mono line-clamp-2">{error}</p>
-          ) : (
-            <>
-              <p className="text-[10px] text-yellow-600 font-mono uppercase tracking-wider mb-1">
-                {artistName.slice(0, 16)}
-              </p>
-              <p className="text-xs text-yellow-100 font-semibold line-clamp-2 h-8">
-                {currentTrack?.name || 'Ready'}
-              </p>
-            </>
+        {/* LCD Display */}
+        <div className="mt-2 p-3 bg-gray-900 rounded-lg border-2 border-gray-800 shadow-inner min-h-[56px] flex flex-col justify-center">
+          <p className="text-[10px] text-yellow-600 font-mono uppercase tracking-wider truncate">
+            {loading ? 'Searching...' : !ready ? 'Loading player...' : (artistName || 'Type artist below')}
+          </p>
+          <p className="text-xs text-yellow-100 font-semibold line-clamp-1 mt-0.5">
+            {currentTrack?.name || (tracks.length > 0 ? 'Press play' : '—')}
+          </p>
+          {currentTrack && (
+            <p className="text-[9px] text-yellow-700 truncate">
+              {currentTrack.artists.map(a => a.name).join(', ')}
+            </p>
           )}
         </div>
 
-        {/* Cassette Area */}
-        <div className="flex-1 flex items-center justify-center mb-4 bg-gray-900 rounded-xl p-4 border-4 border-gray-800 relative overflow-hidden">
-          {/* Animated Reels */}
-          <div className="flex items-center justify-center gap-3 w-full">
+        {/* Cassette Window */}
+        <div className="bg-gray-900 rounded-xl p-4 border-4 border-gray-800">
+          <div className="flex items-center justify-center gap-3">
             <motion.div
               animate={isPlaying ? { rotate: 360 } : {}}
               transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: 'linear' }}
-              className="w-12 h-12 rounded-full border-3 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0"
+              className="w-12 h-12 rounded-full border-4 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0"
             >
-              <div className="w-7 h-7 rounded-full border-2 border-gray-500 bg-gray-900" />
+              <div className="w-6 h-6 rounded-full border-2 border-gray-500 bg-gray-900" />
             </motion.div>
 
-            {/* Tape */}
-            <div className="flex-1 h-3 bg-gradient-to-r from-gray-700 to-gray-800 rounded-sm relative overflow-hidden">
+            <div className="flex-1 h-3 bg-gray-700 rounded-sm relative overflow-hidden">
               {isPlaying && (
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-40"
@@ -106,16 +205,16 @@ export function Walkman({
             <motion.div
               animate={isPlaying ? { rotate: -360 } : {}}
               transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: 'linear' }}
-              className="w-12 h-12 rounded-full border-3 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0"
+              className="w-12 h-12 rounded-full border-4 border-gray-600 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0"
             >
-              <div className="w-7 h-7 rounded-full border-2 border-gray-500 bg-gray-900" />
+              <div className="w-6 h-6 rounded-full border-2 border-gray-500 bg-gray-900" />
             </motion.div>
           </div>
         </div>
 
-        {/* Track List Dropdown */}
+        {/* Track List */}
         {tracks.length > 0 && (
-          <motion.div className="mb-4 bg-gray-900 rounded-lg border-2 border-gray-800 overflow-hidden">
+          <div className="bg-gray-900 rounded-lg border-2 border-gray-800 overflow-hidden">
             <button
               onClick={() => setShowTracks(!showTracks)}
               className="w-full flex items-center justify-between px-3 py-2 text-xs text-yellow-300 hover:bg-gray-800 transition-colors"
@@ -125,114 +224,96 @@ export function Walkman({
                 <CaretDown size={12} />
               </motion.div>
             </button>
-
             {showTracks && (
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: 'auto' }}
-                className="max-h-32 overflow-y-auto border-t border-gray-800"
-              >
-                {tracks.slice(0, 8).map((track, idx) => (
+              <div className="max-h-32 overflow-y-auto border-t border-gray-800">
+                {tracks.map((track, idx) => (
                   <button
                     key={track.id}
-                    onClick={() => {
-                      onPlayTrack(idx)
-                      setShowTracks(false)
-                    }}
+                    onClick={() => { play(idx); setShowTracks(false) }}
                     className={`w-full text-left px-3 py-1.5 text-[10px] border-t border-gray-800 transition-colors ${
-                      currentTrackIndex === idx
+                      currentIndex === idx && isPlaying
                         ? 'bg-yellow-500/30 text-yellow-100'
                         : 'text-yellow-400 hover:bg-gray-800'
                     }`}
                   >
-                    <span className="font-mono text-yellow-600">{idx + 1}.</span> {track.name.slice(0, 20)}
+                    <span className="font-mono text-yellow-600">{idx + 1}.</span> {track.name.slice(0, 22)}
                   </button>
                 ))}
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         )}
 
-        {/* Search Box */}
-        <form onSubmit={handleSearch} className="mb-3 relative">
+        {/* Search */}
+        <form onSubmit={handleSearch} className="relative">
           <input
             type="text"
-            placeholder="Artist..."
+            placeholder="Search artist..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            maxLength={20}
-            className="w-full px-2 py-1.5 text-xs rounded bg-yellow-50 border border-yellow-300 text-yellow-900 placeholder-yellow-600/60 focus:outline-none focus:border-yellow-500"
+            className="w-full px-3 py-2 text-xs rounded bg-yellow-50 border border-yellow-300 text-yellow-900 placeholder-yellow-600/60 focus:outline-none focus:border-yellow-500"
           />
           <button
             type="submit"
             disabled={loading}
-            className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-yellow-600 hover:text-yellow-700 disabled:opacity-50"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-yellow-600 hover:text-yellow-700 disabled:opacity-50"
           >
             <MagnifyingGlass size={14} weight="bold" />
           </button>
         </form>
 
         {/* Controls */}
-        <div className="flex items-center justify-center gap-2 mb-3">
+        <div className="flex items-center justify-center gap-3">
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={onPlayPrev}
-            className="p-1.5 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 transition-colors"
-            title="Previous"
+            onClick={prev}
+            disabled={tracks.length === 0}
+            className="p-2 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 transition-colors disabled:opacity-40"
           >
             <SkipBack size={14} weight="fill" />
           </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={tracks.length > 0 ? onTogglePlay : undefined}
-            className={`p-2 rounded-full font-bold transition-colors ${
-              isPlaying
-                ? 'bg-red-500 hover:bg-red-600 text-white'
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            } ${tracks.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title={isPlaying ? 'Pause' : 'Play'}
+            onClick={togglePlay}
+            disabled={tracks.length === 0 || !ready}
+            className={`p-3 rounded-full transition-colors disabled:opacity-40 ${
+              isPlaying ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+            }`}
           >
-            {isPlaying ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}
+            {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
           </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={onPlayNext}
-            className="p-1.5 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 transition-colors"
-            title="Next"
+            onClick={next}
+            disabled={tracks.length === 0}
+            className="p-2 rounded-full bg-yellow-400 hover:bg-yellow-300 text-yellow-950 transition-colors disabled:opacity-40"
           >
             <SkipForward size={14} weight="fill" />
           </motion.button>
         </div>
 
-        {/* Volume Indicator */}
-        <div className="flex items-center justify-center gap-1">
+        {/* VU Meter */}
+        <div className="flex items-center gap-2">
           <span className="text-[9px] text-yellow-900 font-mono font-bold">VOL</span>
-          <div className="flex-1 h-1.5 bg-yellow-300 rounded-full shadow-inner flex items-center px-0.5">
+          <div className="flex-1 h-1.5 bg-yellow-300 rounded-full overflow-hidden">
             <motion.div
-              animate={isPlaying ? { width: ['15%', '70%', '15%'] } : { width: '30%' }}
-              transition={{
-                duration: 2,
-                repeat: isPlaying ? Infinity : 0,
-                ease: 'easeInOut',
-              }}
+              animate={isPlaying ? { width: ['15%', '75%', '15%'] } : { width: '30%' }}
+              transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: 'easeInOut' }}
               className="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full"
             />
           </div>
         </div>
 
-        {/* Brand Text */}
-        <div className="text-center mt-2 text-[9px] text-yellow-900 font-bold tracking-widest">
+        {/* Brand */}
+        <div className="text-center text-[9px] text-yellow-900 font-bold tracking-widest pb-1">
           SPOTIFY WALKMAN
         </div>
 
         {/* Bottom Trim */}
         <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-gray-300 to-gray-400 rounded-b-xl border-t border-gray-500/30" />
       </div>
-
-      {/* Shine Effect */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none" />
     </motion.div>
   )
 }
